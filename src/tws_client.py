@@ -190,12 +190,12 @@ class TwsClient(EWrapper, EClient):
                 self.underlying_dict['SMA200'] = f'${sma200:.2f}'
                 self.underlying_dict['SMA50'] = f'${sma50:.2f}'
 
-                if curr_price <= 40.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price under 40 US Dollar'
-                elif curr_price >= 1000.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price above 1000 US Dollar'
+                if curr_price < 40.0:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than 40 US Dollar'
+                elif curr_price > 1000.0:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price greater than 1000 US Dollar'
                 elif curr_price < sma200:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price below SMA 200'
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than SMA 200'
 
             elif self.what_to_show == 'OPTION_IMPLIED_VOLATILITY':
                 cur_iv = round(self.close_list[0],2) * 100
@@ -206,7 +206,7 @@ class TwsClient(EWrapper, EClient):
                 self.underlying_dict['IV Rank 52W'] = f'{round(self.rank,2):.2f}'
 
                 if cur_iv < 40.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: IV under 40'
+                    self.error_code = f'{self.underlying_dict['Symbol']}: IV smaller than 40'
 
         elif self.duration_str == '13 W':
             if self.what_to_show == 'Trades':
