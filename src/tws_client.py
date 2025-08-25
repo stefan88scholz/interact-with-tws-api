@@ -1,11 +1,9 @@
-from defines import *
-
 from ibapi.client import EClient, Contract
 from ibapi.contract import ContractDetails
 from ibapi.utils import current_fn_name
 from ibapi.wrapper import EWrapper, BarData
 from ibapi.common import TickerId, TickAttrib, TagValueList, WshEventData
-from ibapi.ticktype import TickTypeEnum, TickType
+from ibapi.ticktype import TickType
 from threading import Event
 import queue
 from decimal import Decimal
@@ -14,30 +12,31 @@ import re
 
 FLOAT_UNSET = float(-1.0)
 
-Underlying = TypedDict('Underlying',{'symbol': str,
-                                     'current_price': float,
-                                     'sma_200': float,
-                                     'sma_50': float,
-                                     'current_iv': float,
-                                     'price_percentile_13': float,
-                                     'price_percentile_52': float,
-                                     'price_rank_13': float,
-                                     'price_rank_52': float,
-                                     'price_change_13': float,
-                                     'price_change_52': float,
-                                     'iv_percentile_13': float,
-                                     'iv_percentile_52': float,
-                                     'iv_rank_13': float,
-                                     'iv_rank_52': float,
-                                     'price_weeks_high_13': float,
-                                     'price_weeks_high_52': float,
-                                     'price_weeks_low_13': float,
-                                     'price_weeks_low_52': float,
-                                     'iv_weeks_high_13': float,
-                                     'iv_weeks_high_52': float,
-                                     'iv_weeks_low_13': float,
-                                     'iv_weeks_low_52': float,
-                                     'last_financial_data': str,
+Underlying = TypedDict('Underlying',{'Symbol': str,
+                                     'Name': str,
+                                     'Current Price': str,
+                                     'SMA200': str,
+                                     'SMA50': str,
+                                     'Current IV': str,
+                                     'Price Percentile 13W': str,
+                                     'Price Percentile 52W': str,
+                                     'Price Rank 13W': str,
+                                     'Price Rank 52W': str,
+                                     'Price Change 13W': str,
+                                     'Price Change 52W': str,
+                                     'IV Percentile 13W': str,
+                                     'IV Percentile 52W': str,
+                                     'IV Rank 13W': str,
+                                     'IV Rank 52W': str,
+                                     'Price Weeks High 13W': str,
+                                     'Price Weeks High 52W': str,
+                                     'Price Weeks Low 13W': str,
+                                     'Price Weeks Low 52W': str,
+                                     'IV Weeks High 13W': str,
+                                     'IV Weeks High 52W': str,
+                                     'IV Weeks Low 13W': str,
+                                     'IV Weeks Low 52W': str,
+                                     'Market Cap': str,
                                      }
                        )
 
@@ -56,30 +55,31 @@ class TwsClient(EWrapper, EClient):
         # An asset's closing price. The last level at which it was traded on any given day
         self.close_list: list[float] = list()
         self.underlying_symbol: str = ''
-        self.underlying_dict: Underlying = {'symbol': 'na',
-                                            'current_price': FLOAT_UNSET,
-                                            'current_iv': FLOAT_UNSET,
-                                            'sma_200': FLOAT_UNSET,
-                                            'sma_50': FLOAT_UNSET,
-                                            'price_percentile_13': FLOAT_UNSET,
-                                            'price_percentile_52': FLOAT_UNSET,
-                                            'price_rank_13': FLOAT_UNSET,
-                                            'price_rank_52': FLOAT_UNSET,
-                                            'price_change_13': FLOAT_UNSET,
-                                            'price_change_52': FLOAT_UNSET,
-                                            'iv_percentile_13': FLOAT_UNSET,
-                                            'iv_percentile_52': FLOAT_UNSET,
-                                            'iv_rank_13': FLOAT_UNSET,
-                                            'iv_rank_52': FLOAT_UNSET,
-                                            'price_weeks_high_13': FLOAT_UNSET,
-                                            'price_weeks_high_52': FLOAT_UNSET,
-                                            'price_weeks_low_13': FLOAT_UNSET,
-                                            'price_weeks_low_52': FLOAT_UNSET,
-                                            'iv_weeks_high_13': FLOAT_UNSET,
-                                            'iv_weeks_high_52': FLOAT_UNSET,
-                                            'iv_weeks_low_13': FLOAT_UNSET,
-                                            'iv_weeks_low_52': FLOAT_UNSET,
-                                            'last_financial_data': ''
+        self.underlying_dict: Underlying = {'Symbol': '',
+                                            'Name': '',
+                                            'Current Price': '',
+                                            'Current IV': '',
+                                            'SMA200': '',
+                                            'SMA50': '',
+                                            'Price Percentile 13W': '',
+                                            'Price Percentile 52W': '',
+                                            'Price Rank 13W': '',
+                                            'Price Rank 52W': '',
+                                            'Price Change 13W': '',
+                                            'Price Change 52W': '',
+                                            'IV Percentile 13W': '',
+                                            'IV Percentile 52W': '',
+                                            'IV Rank 13W': '',
+                                            'IV Rank 52W': '',
+                                            'Price Weeks High 13W': '',
+                                            'Price Weeks High 52W': '',
+                                            'Price Weeks Low 13W': '',
+                                            'Price Weeks Low 52W': '',
+                                            'IV Weeks High 13W': '',
+                                            'IV Weeks High 52W': '',
+                                            'IV Weeks Low 13W': '',
+                                            'IV Weeks Low 52W': '',
+                                            'Market Cap': ''
                                             }
         self.underlying_list: list[Underlying] = list()
 
@@ -94,7 +94,7 @@ class TwsClient(EWrapper, EClient):
         if errorCode in [2104, 2106, 2158]:
             print(errorString)
         else:
-            self.error_code = f'{reqId = }; Error {errorCode}: {self.underlying_dict['symbol']}; {errorString}'
+            self.error_code = f'{reqId = }; Error {errorCode}: {self.underlying_dict['Symbol']}; {errorString}'
             self.event.set()
 
 
@@ -117,7 +117,7 @@ class TwsClient(EWrapper, EClient):
         self.weeks_low = FLOAT_UNSET
         self.weeks_high = FLOAT_UNSET
         self.close_list.clear()
-        self.underlying_dict['symbol'] = contract.symbol
+        self.underlying_dict['Symbol'] = contract.symbol
         
         super().reqHistoricalData(reqId,
                                   contract,
@@ -170,54 +170,56 @@ class TwsClient(EWrapper, EClient):
         last_closing: float = self.close_list[0]
         #print(f'Last closing: {last_closing}')
         count_lower_last_closing: int = sum(1 for x in self.close_list if x < last_closing)
-        self.percentile = (count_lower_last_closing / len(self.close_list) * 100)
+        self.percentile = (count_lower_last_closing / len(self.close_list))
         self.rank = ((last_closing - self.weeks_low) / (self.weeks_high - self.weeks_low)) * 100
         #print(f'Stock price percentile: {self.percentile:.2f}%')
         #print(f'Stock price rank: {self.rank:.2f} ')
 
         if self.duration_str == '52 W':
             if self.what_to_show == 'Trades':
-                self.underlying_dict['current_price'] = self.close_list[0]
-                self.underlying_dict['price_weeks_high_52'] = round(self.weeks_high,2)
-                self.underlying_dict['price_weeks_low_52'] = round(self.weeks_low,2)
-                self.underlying_dict['price_percentile_52'] = round(self.percentile,2)
-                self.underlying_dict['price_rank_52'] = round(self.rank,2)
-                self.underlying_dict['price_change_52'] = round(((self.close_list[0] / self.close_list[-1]) - 1) * 100,2)
+                curr_price = self.close_list[0]
+                self.underlying_dict['Current Price'] = f'${curr_price:.2f}'
+                self.underlying_dict['Price Weeks High 52W'] = f'${round(self.weeks_high,2):.2f}'
+                self.underlying_dict['Price Weeks Low 52W'] = f'${round(self.weeks_low,2):.2f}'
+                self.underlying_dict['Price Percentile 52W'] = f'{round(self.percentile,2):.2%}'
+                self.underlying_dict['Price Rank 52W'] = f'{round(self.rank,2):.2f}'
+                self.underlying_dict['Price Change 52W'] = f'{round(((self.close_list[0] / self.close_list[-1]) - 1),2):.2%}'
                 #Calculate SMA 200 and SMA 50
-                self.underlying_dict['sma_200'] = round(sum([price for idx,price in enumerate(self.close_list) if idx < 200]) / 200,2)
-                self.underlying_dict['sma_50'] = round(sum([price for idx,price in enumerate(self.close_list) if idx < 50]) / 50,2)
+                sma200: float = round(sum([price for idx,price in enumerate(self.close_list) if idx < 200]) / 200,2)
+                sma50: float = round(sum([price for idx,price in enumerate(self.close_list) if idx < 50]) / 50,2)
+                self.underlying_dict['SMA200'] = f'${sma200:.2f}'
+                self.underlying_dict['SMA50'] = f'${sma50:.2f}'
 
-                cur_price = self.underlying_dict['current_price']
-                if cur_price <= 40:
-                    self.error_code = f'{self.underlying_dict['symbol']}: Current price under 40 US Dollar'
-                elif cur_price >= 1000:
-                    self.error_code = f'{self.underlying_dict['symbol']}: Current price above 1000 US Dollar'
-                elif cur_price < self.underlying_dict['sma_200']:
-                    self.error_code = f'{self.underlying_dict['symbol']}: Current price below SMA 200'
+                if curr_price <= 40.0:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price under 40 US Dollar'
+                elif curr_price >= 1000.0:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price above 1000 US Dollar'
+                elif curr_price < sma200:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price below SMA 200'
 
             elif self.what_to_show == 'OPTION_IMPLIED_VOLATILITY':
-                self.underlying_dict['current_iv'] = round(self.close_list[0],2) * 100
-                self.underlying_dict['iv_weeks_high_52'] = round(self.weeks_high,2) * 100
-                self.underlying_dict['iv_weeks_low_52'] = round(self.weeks_low,2) * 100
-                self.underlying_dict['iv_percentile_52'] = round(self.percentile,2)
-                self.underlying_dict['iv_rank_52'] = round(self.rank,2)
-                
-                cur_iv = self.underlying_dict['current_iv']
+                cur_iv = round(self.close_list[0],2) * 100
+                self.underlying_dict['Current IV'] = f'{cur_iv:.2f}'
+                self.underlying_dict['IV Weeks High 52W'] = f'{round(self.weeks_high,2) * 100:.2f}'
+                self.underlying_dict['IV Weeks Low 52W'] = f'{round(self.weeks_low,2) * 100:.2f}'
+                self.underlying_dict['IV Percentile 52W'] = f'{round(self.percentile,2):.2%}'
+                self.underlying_dict['IV Rank 52W'] = f'{round(self.rank,2):.2f}'
+
                 if cur_iv < 40.0:
-                    self.error_code = f'{self.underlying_dict['symbol']}: IV under 40'
+                    self.error_code = f'{self.underlying_dict['Symbol']}: IV under 40'
 
         elif self.duration_str == '13 W':
             if self.what_to_show == 'Trades':
-                self.underlying_dict['price_weeks_high_13'] = round(self.weeks_high,2)
-                self.underlying_dict['price_weeks_low_13'] = round(self.weeks_low,2)
-                self.underlying_dict['price_percentile_13'] = round(self.percentile,2)
-                self.underlying_dict['price_rank_13'] = round(self.rank,2)
-                self.underlying_dict['price_change_13'] = round(((self.close_list[0] / self.close_list[-1]) - 1) * 100,2)
+                self.underlying_dict['Price Weeks High 13W'] = f'${round(self.weeks_high,2):.2f}'
+                self.underlying_dict['Price Weeks Low 13W'] = f'${round(self.weeks_low,2):.2f}'
+                self.underlying_dict['Price Percentile 13W'] = f'{round(self.percentile,2):.2%}'
+                self.underlying_dict['Price Rank 13W'] = f'{round(self.rank,2):.2f}'
+                self.underlying_dict['Price Change 13W'] = f'{round(((self.close_list[0] / self.close_list[-1]) - 1),2):.2%}'
             elif self.what_to_show == 'OPTION_IMPLIED_VOLATILITY':
-                self.underlying_dict['iv_weeks_high_13'] = round(self.weeks_high,2) * 100
-                self.underlying_dict['iv_weeks_low_13'] = round(self.weeks_low,2) * 100
-                self.underlying_dict['iv_percentile_13'] = round(self.percentile,2)
-                self.underlying_dict['iv_rank_13'] = round(self.rank,2)
+                self.underlying_dict['IV Weeks High 13W'] = f'{round(self.weeks_high,2) * 100:.2f}'
+                self.underlying_dict['IV Weeks Low 13W'] = f'{round(self.weeks_low,2) * 100:.2f}'
+                self.underlying_dict['IV Percentile 13W'] = f'{round(self.percentile,2):.2%}'
+                self.underlying_dict['IV Rank 13W'] = f'{round(self.rank,2):.2f}'
 
         self.event.set()
 
@@ -321,3 +323,32 @@ class TwsClient(EWrapper, EClient):
         super().wshEventData(reqId, dataJson)
         print(f'{reqId}' + f'{dataJson}',sep=';')
         self.event.set()
+
+    def scannerParameters(self, xml: str):
+        print(f'Function name: {current_fn_name()}')
+        open('scannerParam.txt', 'w',errors='backslashreplace').write(xml)
+        print("Scanner parameters received!")
+
+    def scannerDataEnd(self, reqId: int):
+        print(f'Function name: {current_fn_name()}')
+        print(f'{reqId = }')
+        self.event.set()
+
+    def scannerData(
+        self,
+        reqId: int,
+        rank: int,
+        contractDetails: ContractDetails,
+        distance: str,
+        benchmark: str,
+        projection: str,
+        legsStr: str,
+    ):
+        print(f'{reqId = }',end=';')
+        print(f'{rank = }')
+        print(f'{contractDetails.__str__() = }')
+        print(f'{contractDetails.contract.__str__()}')
+        print(f'{distance = }', end=';')
+        print(f'{benchmark = }')
+        print(f'{projection = }', end=';')
+        print(f'{legsStr = }')
