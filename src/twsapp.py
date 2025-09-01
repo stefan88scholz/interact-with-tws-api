@@ -49,7 +49,7 @@ def execute_tws_app(df_input: pd.DataFrame,
         what_to_show_option_iv = 'OPTION_IMPLIED_VOLATILITY'
 
         if min_market_cap > row.MarketCap:
-            client.error_code = f'Market cap below {min_market_cap}'
+            client.error_code = f'Market Cap below ${min_market_cap}'
             print(f'{row.Symbol}: {client.error_code}')
             continue
 
@@ -130,7 +130,7 @@ def main() -> None:
                         nargs='*',
                         type=str,
                         help='List of CSV files')
-    parser.add_argument('-col','--column',
+    parser.add_argument('--column',
                         type=str,
                         choices=['Symbol', 'Name', 'Current Price', 'Current IV', 'SMA200', 'SMA50',
                                 'Price Percentile 13W', 'Price Percentile 52W', 'Price Rank 13W',
@@ -138,10 +138,10 @@ def main() -> None:
                                 'IV Percentile 52W', 'IV Rank 13W', 'IV Rank 52W', 'Market Cap'],
                         default='Symbol',
                         help='''Provide column to sort. Default=Symbol. Possible Values:
-                                'Symbol', 'Name', 'Current Price', 'Current IV', 'SMA200', 'SMA50',
-                                'Price Percentile 13W', 'Price Percentile 52W', 'Price Rank 13W',
-                                'Price Rank 52W', 'Price Change 13W', 'Price Change 52W', 'IV Percentile 13W',
-                                'IV Percentile 52W', 'IV Rank 13W', 'IV Rank 52W', 'Market Cap' ''',
+                                "Symbol", "Name", "Current Price", "Current IV", "SMA200", "SMA50",
+                                "Price Percentile 13W", "Price Percentile 52W", "Price Rank 13W",
+                                "Price Rank 52W", "Price Change 13W", "Price Change 52W", "IV Percentile 13W",
+                                "IV Percentile 52W", "IV Rank 13W", "IV Rank 52W", "Market Cap" ''',
                         )
     parser.add_argument('--ascending',
                         action='store_true',
@@ -184,7 +184,7 @@ def main() -> None:
 
             end_date_time: str = f'{datetime.now(timezone('US/Eastern')).__str__().split('.')[0]} US/Eastern'
             end_date_time = end_date_time.replace('-','')
-            print(end_date_time)
+            print(f'Get data at {end_date_time}')
             df_underlying: pd.DataFrame = execute_tws_app(df_input=df_input_sorted,
                                                           end_date_time=end_date_time,
                                                           ascending= args.ascending,
@@ -205,4 +205,4 @@ if __name__ == '__main__':
     now = time.time()
     main()
     end = time.time()
-    print(f'Total time: {end - now} seconds')
+    print(f'Total time: {(end - now):.2f} seconds')
