@@ -145,8 +145,8 @@ def main() -> None:
                         )
     parser.add_argument('--ascending',
                         action='store_true',
-                        help='''Order column ascending or descending. Possible values: True, False.
-                                Default=Ascending''')
+                        help='''Order column ascending or descending. Possible values: True(=Ascending), False(=Descending).
+                                Default=True''')
     parser.add_argument('--min_price',
                         type=float,
                         default=40.0,
@@ -158,11 +158,11 @@ def main() -> None:
     parser.add_argument('--above_sma200',
                         action='store_true',
                         help='''Store results for stocks with current price greater than than SMA200.
-                                Possible values: True, False. Default=True''')
+                                Possible values: True(=ignore stocks below SMA200), False(=consider all stocks). Default=True''')
     parser.add_argument('--above_sma50',
                         action='store_false',
                         help='''Store results for stocks with current price greater than than SMA50.
-                                Possible values: True, False. Default=False''')
+                                Possible values: True(=ignore stocks below SMA200), False(=consider all stocks). Default=False''')
     parser.add_argument('--min_iv',
                         type=float,
                         default=40.0,
