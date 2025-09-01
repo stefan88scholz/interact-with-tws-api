@@ -41,11 +41,24 @@ Underlying = TypedDict('Underlying',{'Symbol': str,
                        )
 
 class TwsClient(EWrapper, EClient):
-    def __init__(self, event: Event):
+    def __init__(self,
+                 event: Event,
+                 ascending: bool,
+                 min_price: float,
+                 max_price: float,
+                 above_sma200: bool,
+                 above_sma50: bool,
+                 min_iv: float):
         EClient.__init__(self,self)
         self.data_queue = queue.Queue()
-        self.event = event
-        self.error_code = ''
+        self.event: Event = event
+        self.ascending: bool = ascending
+        self.min_price: float = min_price
+        self.max_price: float = max_price
+        self.above_sma200: bool = above_sma200
+        self.above_sma50: bool = above_sma50
+        self.min_iv: float = min_iv
+        self.error_code: str = ''
         self.weeks_high: float = FLOAT_UNSET
         self.weeks_low: float = FLOAT_UNSET
         self.percentile: float = FLOAT_UNSET
@@ -190,11 +203,13 @@ class TwsClient(EWrapper, EClient):
                 self.underlying_dict['SMA200'] = f'${sma200:.2f}'
                 self.underlying_dict['SMA50'] = f'${sma50:.2f}'
 
-                if curr_price < 40.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than 40 US Dollar'
-                elif curr_price > 1000.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price greater than 1000 US Dollar'
-                elif curr_price < sma200:
+                if curr_price < self.min_price:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than ${self.min_price}'
+                elif curr_price > self.max_price:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price greater than ${self.max_price}'
+                elif self.above_sma200 and curr_price < sma200:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than SMA 200'
+                elif self.above_sma50 and curr_price < sma50:
                     self.error_code = f'{self.underlying_dict['Symbol']}: Current price smaller than SMA 200'
 
             elif self.what_to_show == 'OPTION_IMPLIED_VOLATILITY':
@@ -205,8 +220,8 @@ class TwsClient(EWrapper, EClient):
                 self.underlying_dict['IV Percentile 52W'] = f'{round(self.percentile,2):.2%}'
                 self.underlying_dict['IV Rank 52W'] = f'{round(self.rank,2):.2f}'
 
-                if cur_iv < 40.0:
-                    self.error_code = f'{self.underlying_dict['Symbol']}: IV smaller than 40'
+                if cur_iv < self.min_iv:
+                    self.error_code = f'{self.underlying_dict['Symbol']}: IV smaller than {self.min_iv}'
 
         elif self.duration_str == '13 W':
             if self.what_to_show == 'Trades':
