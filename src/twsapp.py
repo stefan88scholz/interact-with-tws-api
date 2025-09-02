@@ -143,9 +143,9 @@ def main() -> None:
                                 "Price Rank 52W", "Price Change 13W", "Price Change 52W", "IV Percentile 13W",
                                 "IV Percentile 52W", "IV Rank 13W", "IV Rank 52W", "Market Cap" ''',
                         )
-    parser.add_argument('--ascending',
-                        action='store_true',
-                        help='''Order column ascending or descending. Possible values: True(=Ascending), False(=Descending).
+    parser.add_argument('--descending',
+                        action='store_false',
+                        help='''Order column descending. If not provided then ascending. No values.
                                 Default=True''')
     parser.add_argument('--min_price',
                         type=float,
@@ -157,12 +157,12 @@ def main() -> None:
                         help='Store results for stocks with current price smaller than max_price in USD. Default $1000.')
     parser.add_argument('--above_sma200',
                         action='store_true',
-                        help='''Store results for stocks with current price greater than than SMA200.
-                                Possible values: True(=ignore stocks below SMA200), False(=consider all stocks). Default=True''')
+                        help='''Store results for stocks with current price greater than than SMA200. If not provided
+                                then no filter is applied. No values.''')
     parser.add_argument('--above_sma50',
-                        action='store_false',
+                        action='store_true',
                         help='''Store results for stocks with current price greater than than SMA50.
-                                Possible values: True(=ignore stocks below SMA200), False(=consider all stocks). Default=False''')
+                                If not provided then no filter is applied. No values.''')
     parser.add_argument('--min_iv',
                         type=float,
                         default=40.0,
@@ -187,7 +187,7 @@ def main() -> None:
             print(f'Get data at {end_date_time}')
             df_underlying: pd.DataFrame = execute_tws_app(df_input=df_input_sorted,
                                                           end_date_time=end_date_time,
-                                                          ascending= args.ascending,
+                                                          ascending= args.descending,
                                                           min_price=args.min_price,
                                                           max_price=args.max_price,
                                                           above_sma200=args.above_sma200,
@@ -196,7 +196,7 @@ def main() -> None:
                                                           min_market_cap=args.min_market_cap)
             df_underlying_sorted: pd.DataFrame = df_underlying.sort_values(by=args.column,
                           key=lambda x: np.argsort(index_natsorted(df_underlying[args.column])),
-                          ascending=(not args.ascending))
+                          ascending=args.descending)
             df_underlying_sorted.to_csv('result.csv')
         except Exception as error:
             print(error)
